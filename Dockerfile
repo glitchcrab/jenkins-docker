@@ -15,6 +15,7 @@ RUN apt-get update \
      software-properties-common \
      vim \
      wget \
+     jq \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
