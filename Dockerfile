@@ -20,7 +20,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # install gosu for a better su+exec command
-ARG GOSU_VERSION=1.11
+ARG GOSU_VERSION=1.12
 RUN dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
  && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" \
  && chmod +x /usr/local/bin/gosu \
@@ -38,7 +38,8 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd -r docker \
  && usermod -aG docker jenkins \
- && usermod -u 2000 jenkins
+ && usermod -u 2000 jenkins \
+ && chown jenkins.jenkins /var/jenkins_home
 
 # entrypoint is used to update docker gid and revert back to jenkins user
 COPY entrypoint.sh /entrypoint.sh
