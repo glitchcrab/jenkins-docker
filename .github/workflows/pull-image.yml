@@ -1,16 +1,30 @@
-name: 'Build and push image'
+name: 'Pull image tags'
 on:
   pull_request:
 
-env:
-  IMAGE_NAME: 'glitchcrab/jenkins-docker'
-
 jobs:
   plan:
-    name: 'Build and push'
+    name: 'Pull image tags'
     runs-on: ubuntu-20.04
     steps:
       - name: Set up Docker buildx
         uses: docker/setup-buildx-action@v1
-      - name: Pull image
-        run: docker pull ${{ env.IMAGE_NAME }}:latest
+      - name: Install jq
+        run: sudo apt-get install jq
+      - name: Log into Dockerhub
+        run: |
+          JWT_TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d \
+              '{"username": "'${{ secrets.DOCKERHUB_USERNAME }}'", "password": "'${{ secrets.DOCKERHUB_TOKEN }}'"}' \
+              https://hub.docker.com/v2/users/login/ | jq -r .token)
+          echo "JWT_TOKEN=${JWT_TOKEN}" >> $GITHUB_ENV
+      - name: Get tag list
+        run: |
+          TAGLIST=$(curl -s -H "Authorization: JWT ${{ env.JWT_TOKEN }}" \
+              https://hub.docker.com/v2/repositories/${{ secrets.IMAGE_NAME }}/tags \
+              | jq -r --argjson endid ${{ secrets.ARRAY_END }} '.results[:$endid] | .[].name')
+          echo "TAGLIST=${TAGLIST}" >> $GITHUB_ENV
+      - name: Pull images from taglist
+        run: |
+          for TAG in ${{ env.TAGLIST }}; do
+            docker pull ${{ secrets.IMAGE_NAME }}:$TAG
+          done
