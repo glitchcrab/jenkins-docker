@@ -29,6 +29,6 @@ jobs:
           echo "::set-output name=TAGLIST::$(echo "${TAGLIST}")"
       - name: Pull images from taglist
         run: |
-          for TAG in ${{ env.TAGLIST }}; do
+          for TAG in ${{ steps.taglist.outputs.TAGLIST }}; do
             docker pull ${{ secrets.IMAGE_NAME }}:$TAG
           done
