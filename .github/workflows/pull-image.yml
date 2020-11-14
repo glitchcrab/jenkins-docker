@@ -20,11 +20,13 @@ jobs:
           #echo "JWT_TOKEN=${JWT_TOKEN}" >> $GITHUB_ENV
           echo "::set-output name=JWT_TOKEN::$(echo ${JWT_TOKEN})"
       - name: Get tag list
+        id: taglist
         run: |
           TAGLIST=$(curl -s -H "Authorization: JWT ${{ steps.login.outputs.JWT_TOKEN }}" \
               https://hub.docker.com/v2/repositories/${{ secrets.IMAGE_NAME }}/tags \
               | jq -r --argjson endid ${{ secrets.ARRAY_END }} '.results[:$endid] | .[].name')
-          echo "TAGLIST=\"${TAGLIST}\"" >> $GITHUB_ENV
+          #echo "TAGLIST=\"${TAGLIST}\"" >> $GITHUB_ENV
+          echo "::set-output name=TAGLIST::$(echo "${TAGLIST}")"
       - name: Pull images from taglist
         run: |
           for TAG in ${{ env.TAGLIST }}; do
