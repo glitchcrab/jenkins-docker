@@ -1,6 +1,8 @@
 name: 'Pull image tags'
 on:
-  pull_request:
+  schedule:
+    # run on the first day of every month
+    - cron:  '0 0 1 * *'
 
 jobs:
   plan:
