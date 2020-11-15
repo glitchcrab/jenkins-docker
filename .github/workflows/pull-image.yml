@@ -1,0 +1,33 @@
+name: 'Pull image tags'
+on:
+  schedule:
+    # run on the first day of every month
+    - cron:  '0 0 1 * *'
+
+jobs:
+  plan:
+    name: 'Pull image tags'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Install jq
+        run: sudo apt-get install jq
+      - name: Log into Dockerhub
+        id: login
+        run: |
+          JWT_TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d \
+              '{"username": "'${{ secrets.DOCKERHUB_USERNAME }}'", "password": "'${{ secrets.DOCKERHUB_TOKEN }}'"}' \
+              https://hub.docker.com/v2/users/login/ | jq -r .token)
+          echo "::set-output name=JWT_TOKEN::$(echo ${JWT_TOKEN})"
+      - name: Get tag list and pull
+        id: taglist
+        run: |
+          TAGLIST=$(curl -s -H "Authorization: JWT ${{ steps.login.outputs.JWT_TOKEN }}" \
+              https://hub.docker.com/v2/repositories/${{ secrets.IMAGE_NAME }}/tags \
+              | jq -r --argjson endid ${{ secrets.NUM_TAGS }} '.results[:$endid] | .[].name')
+          echo -e "\nPulling the last ${{ secrets.NUM_TAGS }} tag(s)"
+          for TAG in ${TAGLIST}; do
+            echo -e "\nPulling $TAG\n"
+            docker pull ${{ secrets.IMAGE_NAME }}:$TAG
+          done
