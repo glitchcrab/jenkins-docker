@@ -23,8 +23,9 @@ jobs:
         run: |
           TAGLIST=$(curl -s -H "Authorization: JWT ${{ steps.login.outputs.JWT_TOKEN }}" \
               https://hub.docker.com/v2/repositories/${{ secrets.IMAGE_NAME }}/tags \
-              | jq -r --argjson endid ${{ secrets.ARRAY_END }} '.results[:$endid] | .[].name')
+              | jq -r --argjson endid ${{ secrets.NUM_TAGS }} '.results[:$endid] | .[].name')
+          echo -e "\nPulling the last ${{ secrets.NUM_TAGS }} tag(s)"
           for TAG in ${TAGLIST}; do
-            echo -e "Pulling $TAG\n"
+            echo -e "\nPulling $TAG\n"
             docker pull ${{ secrets.IMAGE_NAME }}:$TAG
           done
