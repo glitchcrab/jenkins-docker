@@ -24,7 +24,7 @@ jobs:
           TAGLIST=$(curl -s -H "Authorization: JWT ${{ steps.login.outputs.JWT_TOKEN }}" \
               https://hub.docker.com/v2/repositories/${{ secrets.IMAGE_NAME }}/tags \
               | jq -r --argjson endid ${{ secrets.ARRAY_END }} '.results[:$endid] | .[].name')
-          for TAG in ${TAGLIST }; do
+          for TAG in ${TAGLIST}; do
             echo $TAG
             #docker pull ${{ secrets.IMAGE_NAME }}:$TAG
           done
