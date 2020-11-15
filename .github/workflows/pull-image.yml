@@ -18,17 +18,13 @@ jobs:
               '{"username": "'${{ secrets.DOCKERHUB_USERNAME }}'", "password": "'${{ secrets.DOCKERHUB_TOKEN }}'"}' \
               https://hub.docker.com/v2/users/login/ | jq -r .token)
           echo "::set-output name=JWT_TOKEN::$(echo ${JWT_TOKEN})"
-      - name: Get tag list
+      - name: Get tag list and pull
         id: taglist
         run: |
           TAGLIST=$(curl -s -H "Authorization: JWT ${{ steps.login.outputs.JWT_TOKEN }}" \
               https://hub.docker.com/v2/repositories/${{ secrets.IMAGE_NAME }}/tags \
               | jq -r --argjson endid ${{ secrets.ARRAY_END }} '.results[:$endid] | .[].name')
-          echo $TAGLIST
-          echo "::set-output name=TAGLIST::$(echo "${TAGLIST}")"
-      - run: for tag in $(echo ${{ steps.taglist.outputs.TAGLIST }}) ; do echo -e "$tag\n" ; done
-      - name: Pull images from taglist
-        run: |
-          for TAG in ${{ steps.taglist.outputs.TAGLIST }}; do
-            docker pull ${{ secrets.IMAGE_NAME }}:$TAG
+          for TAG in ${TAGLIST }; do
+            echo $TAG
+            #docker pull ${{ secrets.IMAGE_NAME }}:$TAG
           done
