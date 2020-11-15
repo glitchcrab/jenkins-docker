@@ -26,7 +26,7 @@ jobs:
               | jq -r --argjson endid ${{ secrets.ARRAY_END }} '.results[:$endid] | .[].name')
           echo $TAGLIST
           echo "::set-output name=TAGLIST::$(echo "${TAGLIST}")"
-      - run: echo ${{ steps.taglist.outputs.TAGLIST }}
+      - run: for tag in $(echo ${{ steps.taglist.outputs.TAGLIST }}) ; do echo -e "$tag\n" ; done
       - name: Pull images from taglist
         run: |
           for TAG in ${{ steps.taglist.outputs.TAGLIST }}; do
